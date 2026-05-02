@@ -63,13 +63,21 @@ app.post('/api/commit', async (req, res) => {
             repoExists = false;
         }
 
+        let cloneUrl = repoUrl;
+        const token = process.env.GITHUB_TOKEN;
+        if (token && repoUrl.startsWith('https://github.com/')) {
+            cloneUrl = repoUrl.replace('https://github.com/', `https://${token}@github.com/`);
+        }
+
         if (!repoExists) {
             console.log(`Cloning ${repoUrl} into ${cloneDir}...`);
-            await simpleGit().clone(repoUrl, cloneDir);
+            await simpleGit().clone(cloneUrl, cloneDir);
             console.log(`Successfully cloned.`);
         } else {
             console.log(`Repository already exists at ${cloneDir}. Pulling latest changes...`);
-            await simpleGit(cloneDir).pull();
+            const git = simpleGit(cloneDir);
+            await git.remote(['set-url', 'origin', cloneUrl]);
+            await git.pull();
         }
 
         const clonedGit = simpleGit(cloneDir);
