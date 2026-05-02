@@ -42,7 +42,9 @@ app.post('/api/commit', async (req, res) => {
 
     try {
         // Parse repo url (e.g. https://github.com/username/repo.git)
-        const parts = repoUrl.replace('.git', '').split('/');
+        // Remove trailing slashes and .git
+        let cleanUrl = repoUrl.trim().replace(/\/+$/, '').replace(/\.git$/, '');
+        const parts = cleanUrl.split('/');
         const repo = parts.pop();
         const owner = parts.pop();
 
